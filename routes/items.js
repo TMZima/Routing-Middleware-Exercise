@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const items = require("../fakeDb");
+const ItemStore = require("../ItemStore");
 const ExpressError = require("../expressError");
 
 router.get("/", (req, res, next) => {
   try {
+    const items = ItemStore.getAllItems();
     res.json(items);
   } catch (err) {
     next(err);
@@ -13,17 +14,16 @@ router.get("/", (req, res, next) => {
 
 router.post("/", (req, res, next) => {
   try {
-    const newItem = req.body;
-    items.push(newItem);
+    const newItem = ItemStore.addItem(req.body);
     res.json({ added: newItem });
   } catch (err) {
     next(err);
   }
 });
 
-router.get("/:name", (req, res, next) => {
+router.get("/:id", (req, res, next) => {
   try {
-    const item = items.find((i) => i.name === req.params.name);
+    const item = ItemStore.getItem(req.params.id);
     if (item) {
       res.json(item);
     } else {
@@ -34,12 +34,10 @@ router.get("/:name", (req, res, next) => {
   }
 });
 
-router.patch("/:name", (req, res, next) => {
+router.patch("/:id", (req, res, next) => {
   try {
-    const item = items.find((i) => i.name === req.params.name);
+    const item = ItemStore.updateItem(req.params.id, req.body);
     if (item) {
-      item.name = req.body.name || item.name;
-      item.price = req.body.price || item.price;
       res.json({ updated: item });
     } else {
       throw new ExpressError("Item not found", 404);
@@ -49,11 +47,10 @@ router.patch("/:name", (req, res, next) => {
   }
 });
 
-router.delete("/:name", (req, res, next) => {
+router.delete("/:id", (req, res, next) => {
   try {
-    const itemIndex = items.findIndex((i) => i.name === req.params.name);
-    if (itemIndex !== -1) {
-      items.splice(itemIndex, 1);
+    const success = ItemStore.deleteItem(req.params.id);
+    if (success) {
       res.json({ message: "Deleted" });
     } else {
       throw new ExpressError("Item not found", 404);

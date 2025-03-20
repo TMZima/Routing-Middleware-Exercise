@@ -1,9 +1,11 @@
 const express = require("express");
-const app = express();
 const itemsRoutes = require("./routes/items");
 const ExpressError = require("./expressError");
 
+const app = express();
+
 app.use(express.json());
+app.use(express.static("public"));
 app.use("/items", itemsRoutes);
 
 /** 404 handler */
@@ -20,6 +22,10 @@ app.use((err, req, res, next) => {
   return res.json({
     error: err.message,
   });
+});
+
+app.listen(3000, () => {
+  console.log("Listening on port 3000");
 });
 
 module.exports = app;
